@@ -32,6 +32,8 @@ momentCmd[1] = (pqrCmd[1] - pqr[1])*Iyy*kpPQR[1];
 momentCmd[2] = (pqrCmd[2] - pqr[2])*Izz*kpPQR[2];
 ```
 
+The control gains are set to kpPQR = 50, 50, 10.
+
 ## Roll-Pitch Control
 
 The Roll-Pitch Controller (method RollPitchControl) computes a body-rate command (p_cmd and q_cmd) from a desired acceleration in x and y. Initially, it is necessary to convert the collective thrust command (collThrustCmd), which is in Newtons, into an acceleration value c_d in m/s^2: 
@@ -57,7 +59,7 @@ target_R13 = CONSTRAIN(target_R13,-maxTiltAngle, maxTiltAngle);
 target_R23 = CONSTRAIN(target_R23,-maxTiltAngle, maxTiltAngle);
 ```
 
-The control signal is then computed as the product of a control gain kp and the angular rate error in the global coordinates :
+The control signal is then computed as the product of a control gain kp (kpBank = 12) and the angular rate error in the global coordinates :
 
 ```
 float b_c_x_dot = kpBank*(R(0,2)-target_R13);
@@ -94,13 +96,11 @@ accelCmd.x = CONSTRAIN(accelCmd.x, -maxAccelXY, maxAccelXY);
 accelCmd.y = CONSTRAIN(accelCmd.y, -maxAccelXY, maxAccelXY);
 ```
 
+The control gains are set to kpVelXY = 10 and kpPosXY = 25.
+
 The output is constrained to within maxAccelXY.
 
 ## Altitude Control
-
-The controller should use both the down position and the down velocity to command thrust. Ensure that the output value is indeed thrust (the drone's mass needs to be accounted for) and that the thrust includes the non-linear effects from non-zero roll/pitch angles.
-
-Additionally, the C++ altitude controller should contain an integrator to handle the weight non-idealities presented in scenario 4."
 
 The vertical velocity command is initially constrained to within maxDescentRate and maxAcentRate.
 
@@ -108,7 +108,7 @@ The vertical velocity command is initially constrained to within maxDescentRate 
 velZCmd = CONSTRAIN(velZCmd, -maxDescentRate, maxAscentRate);
 ```
 
-A vertical acceleration control signal u_bar is then computed as the sum of the vertical position error times control gain kpPosZ, the vertical velocity error times control gain kpVelZ and a commanded acceleration feedforward term accelZCmd. Additionally, an integral term is added with control gain KiPosZ.
+A vertical acceleration control signal u_bar is then computed as the sum of the vertical position error times control gain kpPosZ (kpPosZ = 25), the vertical velocity error times control gain kpVelZ (kpVelZ = 10) and a commanded acceleration feedforward term accelZCmd. Additionally, an integral term is added with control gain KiPosZ (KiPosZ = 35).
 
 ```
 integratedAltitudeError += (posZCmd - posZ)*dt;
@@ -125,7 +125,7 @@ thrust = -c*0.5;
 
 ## Yaw Control
 
-The controller can be a linear/proportional heading controller to yaw rate commands (non-linear transformation not required)."
+The yaw controller is proportional heading controller to yaw rate commands:"
 
 ```
 float b = (-3.1413,3.1413);
@@ -134,7 +134,9 @@ float error_yaw = fmodf(yaw,b) - fmodf(yawCmd,b);
 yawRateCmd = -kpYaw*error_yaw;
 ```
 
+The control gain is set to kpYaw = 5.
+
 ## Flight Evaluation
 
-
+The controller passed the performance criteria in Scenarios 1 through 5 successfully.
 
